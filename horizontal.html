@@ -96,6 +96,7 @@
   <div id="regalos" class="caja txt"></div>
 
   <div id="alerta" class="txt"><div class="t" id="alertaT"></div><div class="s" id="alertaS"></div></div>
+  <div id="sinjuego" class="txt oculto" style="position:absolute;left:20px;bottom:20px;font-size:22px;color:#ffb0b0">sin conexión con el juego (¿Minecraft abierto?)</div>
 
 <script>
   // Opciones por la dirección: /vertical?regalos=3&segundos=4&sinAlertas=1
@@ -178,17 +179,20 @@
     setTimeout(() => { $('alerta').classList.remove('on'); setTimeout(() => { mostrando = false; siguienteAlerta(); }, 300); }, Math.max(800, dur));
   }
 
-  let primera = true;
+  let primera = true, fallos = 0;
   async function actualizar() {
     try {
       const s = await (await fetch(BASE + '/estado.json', { cache: 'no-store' })).json();
+      fallos = 0; $('sinjuego').classList.add('oculto');
       reto(s.reto);
       const nuevo = JSON.stringify(s.menu || []);
       if (nuevo !== JSON.stringify(menu)) { menu = s.menu || []; pintarRegalos(); }
       // al abrir la página no repetimos alertas viejas
       if (primera) { ultimaAlerta = Math.max(-1, ...(s.alertas || []).map(a => a.id)); primera = false; }
       else alertas(s.alertas);
-    } catch (e) { /* el juego está cerrado o cambiando de mundo */ }
+    } catch (e) { /* el juego está cerrado o cambiando de mundo */
+      if (++fallos > 10) $('sinjuego').classList.remove('oculto');
+    }
   }
   setInterval(actualizar, 500);
   actualizar();
