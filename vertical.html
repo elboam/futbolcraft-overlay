@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>El chat quiere matarme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Lienzo vertical de TikTok LIVE Studio: 1080 x 1920. Mueve las cosas cambiando estos números. */
+  :root {
+    --arriba: 150px;          /* barra BOSS FINAL (debajo del nombre del directo) */
+    --companeros-arriba: 420px;
+    --regalos-abajo: 470px;   /* distancia desde abajo (encima de los comentarios del móvil) */
+    --alerta-arriba: 700px;
+    --ancho: 940px;
+  }
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body { width: 1080px; height: 1920px; position: relative; color: #fff;
+    font-family: 'Pixelify Sans', 'Minecraft', 'Courier New', monospace; font-weight: 700; }
+  .txt { text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; }
+  .caja { background: rgba(0, 0, 0, .55); border-radius: 14px; }
+
+  #boss { position: absolute; top: var(--arriba); left: calc((1080px - var(--ancho)) / 2); width: var(--ancho);
+    padding: 14px 22px 12px; box-sizing: border-box; }
+  #boss .fila { display: flex; justify-content: space-between; align-items: baseline; }
+  #boss .titulo { font-size: 40px; color: #ff5555; }
+  #boss .titulo span { color: #ffc83d; font-size: 30px; }
+  #boss .pct { font-size: 54px; }
+  .barra { position: relative; height: 26px; background: #222; border: 3px solid #000; border-radius: 6px; overflow: hidden; margin-top: 6px; }
+  .barra .lleno { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(#ff5a4a, #b81515); transition: width .5s; }
+  .barra.final .lleno { background: linear-gradient(#ffe27a, #d79a00); }
+  .marca { position: absolute; top: 0; bottom: 0; width: 5px; background: #888; }
+  .marca.hecha { background: #ffc83d; }
+  #contadores { text-align: center; font-size: 30px; margin-top: 8px; }
+  #contadores b { color: #ffc83d; }
+  #proximo { text-align: center; font-size: 22px; color: #bbb; margin-top: 2px; }
+
+  #companeros { position: absolute; top: var(--companeros-arriba); left: 40px; width: 300px; padding: 12px 16px; box-sizing: border-box; }
+  .comp { margin: 4px 0 10px; }
+  .comp .fila { display: flex; align-items: center; font-size: 28px; }
+  .punto { width: 16px; height: 16px; margin-right: 10px; border: 2px solid #000; }
+  .comp .nombre { flex: 1; }
+  .comp .barrita { height: 9px; background: #222; border: 2px solid #000; margin-top: 4px; }
+  .comp .barrita div { height: 100%; width: 0; transition: width .5s; }
+  .comp .estado { font-size: 20px; margin-top: 3px; }
+
+  #regalos { position: absolute; bottom: var(--regalos-abajo); left: calc((1080px - var(--ancho)) / 2); width: var(--ancho);
+    padding: 10px 18px; box-sizing: border-box; transition: opacity .4s; }
+  .regalo { display: flex; align-items: center; font-size: 30px; margin: 6px 0; }
+  .regalo img, .regalo .sinimg { width: 56px; height: 56px; margin-right: 14px; object-fit: contain; }
+  .regalo .sinimg { display: flex; align-items: center; justify-content: center; font-size: 40px; }
+  .regalo .nombre { color: #ffc83d; }
+  .regalo .monedas { color: #ffe9a8; font-size: 24px; margin-left: 10px; }
+  .regalo .efecto { margin-left: auto; text-align: right; }
+
+  #alerta { position: absolute; top: var(--alerta-arriba); left: 0; width: 1080px; text-align: center; padding: 26px 30px;
+    box-sizing: border-box; background: rgba(0, 0, 0, .7); border-top: 6px solid; border-bottom: 6px solid; opacity: 0;
+    transform: scale(.85); transition: opacity .25s, transform .25s; }
+  #alerta.on { opacity: 1; transform: scale(1); }
+  #alerta .t { font-size: 76px; line-height: 1.05; }
+  #alerta .s { font-size: 40px; margin-top: 10px; color: #fff; }
+  .oculto { display: none !important; }
+
+  /* Horizontal (1920 x 1080): barra arriba al centro, Messi y Cristiano arriba a la izquierda, regalos arriba a la derecha */
+  body.h { width: 1920px; height: 1080px; }
+  body.h #boss { top: 24px; left: 560px; width: 800px; padding: 10px 18px; }
+  body.h #boss .titulo { font-size: 32px; } body.h #boss .titulo span { font-size: 24px; }
+  body.h #boss .pct { font-size: 42px; } body.h .barra { height: 20px; }
+  body.h #contadores { font-size: 24px; } body.h #proximo { font-size: 18px; }
+  body.h #companeros { top: 24px; left: 24px; width: 260px; }
+  body.h .comp .fila { font-size: 24px; }
+  body.h #regalos { top: 24px; bottom: auto; left: auto; right: 24px; width: 470px; }
+  body.h .regalo { font-size: 22px; } body.h .regalo img, body.h .regalo .sinimg { width: 40px; height: 40px; }
+  body.h .regalo .monedas { font-size: 18px; }
+  body.h #alerta { top: 380px; width: 1920px; }
+  body.h #alerta .t { font-size: 64px; } body.h #alerta .s { font-size: 34px; }
+</style>
+</head>
+<body>
+  <div id="boss" class="caja txt">
+    <div class="fila"><div class="titulo">BOSS FINAL <span>(World Cup)</span></div><div class="pct" id="pct">0%</div></div>
+    <div class="barra" id="barra"><div class="lleno" id="lleno"></div>
+      <div class="marca" style="left:25%"></div><div class="marca" style="left:50%"></div><div class="marca" style="left:75%"></div></div>
+    <div id="contadores">DÍA <b id="dia">1</b> · MUERTES <b id="muertes">0</b> · BOSSES <b id="bosses">0</b></div>
+    <div id="proximo"></div>
+  </div>
+
+  <div id="companeros" class="caja txt">
+    <div class="comp" id="messi"><div class="fila"><div class="punto"></div><div class="nombre" style="color:#55ffff">MESSI</div><div class="valor"></div></div>
+      <div class="barrita"><div></div></div><div class="estado"></div></div>
+    <div class="comp" id="cristiano"><div class="fila"><div class="punto"></div><div class="nombre" style="color:#ff6060">CRISTIANO</div><div class="valor"></div></div>
+      <div class="barrita"><div></div></div><div class="estado"></div></div>
+  </div>
+
+  <div id="regalos" class="caja txt"></div>
+
+  <div id="alerta" class="txt"><div class="t" id="alertaT"></div><div class="s" id="alertaS"></div></div>
+
+<script>
+  // Opciones por la dirección: /vertical?regalos=3&segundos=4&sinAlertas=1
+  const q = new URLSearchParams(location.search);
+  if (location.pathname.includes('horizontal') || q.get('modo') === 'horizontal') document.body.classList.add('h');
+  const POR_PAGINA = +(q.get('regalos') || 3), SEG = +(q.get('segundos') || 4);
+  // Si la página está alojada fuera del juego, pide los datos al mod de este PC
+  const BASE = q.get('servidor') || (location.protocol === 'http:' && location.port === '8765' ? '' : 'http://127.0.0.1:8765');
+  const ESTADOS = ['', 'HERIDO', 'MUERTO', 'BANQUILLO', 'NO ESTÁ'];
+  const COLOR_ESTADO = ['#55ff55', '#ffff55', '#ff5555', '#aaaaaa', '#555555'];
+  const $ = id => document.getElementById(id);
+  let menu = [], pagina = 0, ultimaAlerta = -1, colaAlertas = [], mostrando = false;
+  const banda = c => c >= 80 ? '#55ff55' : c >= 50 ? '#e0e040' : c >= 20 ? '#ffa030' : '#ff4040';
+
+  function companero(id, c) {
+    const el = $(id);
+    el.querySelector('.valor').textContent = c.confianza;
+    el.querySelector('.valor').style.color = banda(c.confianza);
+    el.querySelector('.punto').style.background = COLOR_ESTADO[c.estado] || '#555';
+    const b = el.querySelector('.barrita div');
+    b.style.width = Math.max(0, Math.min(100, c.confianza)) + '%';
+    b.style.background = banda(c.confianza);
+    const e = el.querySelector('.estado');
+    e.textContent = ESTADOS[c.estado] ? ESTADOS[c.estado] + (c.segundos > 0 && (c.estado === 2 || c.estado === 3) ? ' ' + c.segundos + 's' : '') : '';
+    e.style.color = COLOR_ESTADO[c.estado];
+  }
+
+  function reto(r) {
+    if (!r) return;
+    const final = r.fase === 1 && r.vidaBoss >= 0;
+    $('pct').textContent = final ? 'COPA ' + Math.ceil(r.vidaBoss) + '%' : Math.floor(r.porcentaje) + '%';
+    $('lleno').style.width = (final ? r.vidaBoss : Math.min(100, r.porcentaje)) + '%';
+    $('barra').classList.toggle('final', final);
+    document.querySelectorAll('.marca').forEach((m, i) => m.classList.toggle('hecha', (r.hitos & (1 << i)) !== 0));
+    $('dia').textContent = r.dia; $('muertes').textContent = r.muertes; $('bosses').textContent = r.bosses;
+    const nombres = ['HORDA 1', 'HORDA 2', 'HORDA 3', 'BOSS FINAL'], en = [25, 50, 75, 100];
+    let prox = '';
+    if (r.fase === 1) prox = '¡DERROTA A LA COPA DEL MUNDO!' + (r.faseBoss ? ' · FASE ' + r.faseBoss : '');
+    else if (r.fase === 0) for (let i = 0; i < 4; i++) if (!(r.hitos & (1 << i))) {
+      prox = 'próximo: ' + nombres[i] + ' al ' + en[i] + '%' + (i === 3 && r.dia < r.diaMinimoBoss ? ' (desde el día ' + r.diaMinimoBoss + ')' : '');
+      break;
+    }
+    $('proximo').textContent = prox;
+    companero('messi', r.messi); companero('cristiano', r.cristiano);
+  }
+
+  function pintarRegalos() {
+    const box = $('regalos');
+    if (!menu.length) { box.classList.add('oculto'); return; }
+    box.classList.remove('oculto');
+    const paginas = Math.ceil(menu.length / POR_PAGINA);
+    pagina = pagina % paginas;
+    box.innerHTML = menu.slice(pagina * POR_PAGINA, pagina * POR_PAGINA + POR_PAGINA).map(g =>
+      `<div class="regalo">${g.imagen ? `<img src="${g.imagen}">` : '<div class="sinimg">🎁</div>'}` +
+      `<span class="nombre">${esc(g.nombre)}</span><span class="monedas">${g.monedas} 🪙</span>` +
+      `<span class="efecto">${esc(g.texto || g.efecto || '')}</span></div>`).join('');
+  }
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  setInterval(() => { pagina++; pintarRegalos(); }, SEG * 1000);
+
+  function alertas(lista) {
+    if (q.get('sinAlertas')) return;
+    for (const a of lista || []) {
+      if (a.id <= ultimaAlerta) continue;
+      ultimaAlerta = a.id;
+      if (a.ms <= 2500 && colaAlertas.length >= 2) continue; // avisos pequeños fuera si hay cola
+      colaAlertas.push(a);
+    }
+    siguienteAlerta();
+  }
+  function siguienteAlerta() {
+    if (mostrando || !colaAlertas.length) return;
+    const a = colaAlertas.shift();
+    mostrando = true;
+    $('alertaT').textContent = a.titulo; $('alertaT').style.color = a.color;
+    $('alertaS').textContent = a.subtitulo;
+    $('alerta').style.borderColor = a.color;
+    $('alerta').classList.add('on');
+    const dur = colaAlertas.length >= 3 ? a.ms / 2 : a.ms;
+    setTimeout(() => { $('alerta').classList.remove('on'); setTimeout(() => { mostrando = false; siguienteAlerta(); }, 300); }, Math.max(800, dur));
+  }
+
+  let primera = true;
+  async function actualizar() {
+    try {
+      const s = await (await fetch(BASE + '/estado.json', { cache: 'no-store' })).json();
+      reto(s.reto);
+      const nuevo = JSON.stringify(s.menu || []);
+      if (nuevo !== JSON.stringify(menu)) { menu = s.menu || []; pintarRegalos(); }
+      // al abrir la página no repetimos alertas viejas
+      if (primera) { ultimaAlerta = Math.max(-1, ...(s.alertas || []).map(a => a.id)); primera = false; }
+      else alertas(s.alertas);
+    } catch (e) { /* el juego está cerrado o cambiando de mundo */ }
+  }
+  setInterval(actualizar, 500);
+  actualizar();
+</script>
+</body>
+</html>
